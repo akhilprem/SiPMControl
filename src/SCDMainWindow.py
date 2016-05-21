@@ -24,4 +24,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         hHeader = self.ui.dacTableView.horizontalHeader()
         hHeader.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         
+        self.ui.adcTableView.verticalHeader().hide()
+        self.ui.dacTableView.verticalHeader().hide()
+        
         self.show();
