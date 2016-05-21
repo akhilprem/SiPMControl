@@ -1,6 +1,7 @@
 from PyQt5 import QtGui, QtCore, QtWidgets
 
 from SCDMainWindow_Ui import Ui_SCDMainWindow
+from SCDPresenter import SCDPresenter
 
 class SCDMainWindow(QtWidgets.QMainWindow):
     
@@ -10,11 +11,13 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_SCDMainWindow()
         self.ui.setupUi(self)
         
-        self._adcReadOutModel = QtGui.QStandardItemModel(48, 2, self)
+        self.NUM_ROWS = 48  # TBD: This information should come from elsewhere.
+        
+        self._adcReadOutModel = QtGui.QStandardItemModel(self.NUM_ROWS, 2, self)
         self._adcReadOutModel.setHorizontalHeaderLabels(["ID/Reading", "Value"]) # User vert. header to reg #.
         self.ui.adcTableView.setModel(self._adcReadOutModel)
         
-        self._dacVoltagesModel = QtGui.QStandardItemModel(48, 2, self)
+        self._dacVoltagesModel = QtGui.QStandardItemModel(self.NUM_ROWS, 2, self)
         self._dacVoltagesModel.setHorizontalHeaderLabels(["ID", "Bias Voltage"])
         self.ui.dacTableView.setModel(self._dacVoltagesModel)
         
@@ -27,4 +30,13 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self.ui.adcTableView.verticalHeader().hide()
         self.ui.dacTableView.verticalHeader().hide()
         
-        self.show();
+        # Make the first column uneditable. Is there a better way to do this?
+        for row in range(self.NUM_ROWS): 
+            index = self._dacVoltagesModel.index(row, 0, QtCore.QModelIndex())
+            self._dacVoltagesModel.setData(index, row + 1)
+            item = self._dacVoltagesModel.itemFromIndex(index)
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)
+        
+    def setPresenter(self, presenter):
+        self._presenter = presenter
+        self._dacVoltagesModel.itemChanged.connect(self._presenter.handleBVChange)

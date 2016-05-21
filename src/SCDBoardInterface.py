@@ -9,7 +9,7 @@ class SCDBoardInterface():
         self._MUX_ADDRESS   = 0x4C
         
     def set_bias_voltage(self, index, voltage):
-        print "TBD"
+        print "{} : {}".format(index, voltage)
         
     def get_reg_voltage(self, index):
         print "TBD"

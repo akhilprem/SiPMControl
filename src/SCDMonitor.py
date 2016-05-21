@@ -1,4 +1,4 @@
-# This shou;d be an observable that the presenter subscribes to.
+# This should be an observable that the presenter subscribes to.
 # This class will also host the thread that talks to the hardware.
 
 from SCDBoardInterface import SCDBoardInterface
@@ -6,7 +6,7 @@ from SCDBoardInterface import SCDBoardInterface
 class SCDMonitor:
     
     def __init__(self):
-        self._boardInterface = SCDBoardInterface()
+        self._boardInterface = SCDBoardInterface() # TBD: Will need to specify parameters
     
     def startPeriodic(self, timeIntervalInMilliSec):
         print "TBD"
@@ -18,7 +18,7 @@ class SCDMonitor:
         print "TBD"
     
     def set_bias_voltage(self, index, voltage):
-        print "TBD"
+        self._boardInterface.set_bias_voltage(index, voltage)
         
     def set_all_bias_voltages(self, listOfVoltages):
         print "TBD"

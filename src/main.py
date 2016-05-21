@@ -4,12 +4,15 @@ import sys
 from PyQt5.QtWidgets import QApplication
 
 from SCDMonitor import SCDMonitor
+from SCDPresenter import SCDPresenter
 from SCDMainWindow import SCDMainWindow
 
 if __name__ == '__main__':
     
-    monitor = SCDMonitor()
-    
     app = QApplication(sys.argv)
-    ex = SCDMainWindow(None)
+    monitor = SCDMonitor()
+    view = SCDMainWindow()
+    presenter = SCDPresenter(monitor, view)
+    view.setPresenter(presenter)
+    view.show()
     sys.exit(app.exec_())
