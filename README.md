@@ -4,7 +4,7 @@ Installation:
 
 The SiPM Control App is written in Python 2.7. Raspbian's default Python installation should support the app.
 
-1. Enable I2C on the Raspberry Pi by follwing the instructions at:
+1. Enable I2C on the Raspberry Pi by following the instructions at:
 
 	http://www.raspberrypi-spy.co.uk/2014/11/enabling-the-i2c-interface-on-the-raspberry-pi/
 
