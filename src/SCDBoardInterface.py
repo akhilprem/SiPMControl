@@ -30,8 +30,7 @@ class SCDBoardInterface():
         
 
     def set_bias_voltage(self, index, voltage):
-        print "{} : {}".format(index, voltage)
-
+        
         if ( voltage > self._BV_MAX or voltage < self._BV_MIN ):
             return # TBD: Raise exception?
 

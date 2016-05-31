@@ -11,26 +11,32 @@ class SCDMonitor(SCDObservable):
         self._boardInterface = SCDBoardInterface() # TBD: Will need to specify parameters
 
     def init(self):
-        # self._boardInterface.init_i2c_channel()
-        print "TBD"
+        self._boardInterface.init_i2c_channel()
+        pass
     
     def startPeriodic(self, timeIntervalInMilliSec):
-        print "TBD"
+        pass
         
     def stopPeriodic(self, timeIntervalInMilliSec):
-        print "TBD"
+        pass
     
     def read_voltages(self):
-        print "TBD"
+        pass
     
     def set_bias_voltage(self, channel, voltage):
         # TBD: Change index to channel in SCDBoardInterface.
-        # self._boardInterface.set_bias_voltage(channel, voltage)
+        
+        # 1. Set the bias voltage
+        self._boardInterface.set_bias_voltage(channel, voltage)
 
-        # self.fire(type="bv_changed", channel=channel, current=self._boardInterface.get_leakage_current(index))
+        # 2. Read back the current value
+        i_leak = self._boardInterface.get_leakage_current(channel)
 
-        # Send a dummy value just for testing the workflow.
-        self.fire(type="bv_changed", channel=channel, current=(float(voltage)/82.0)*500.0)
+        # 3. Notify the observers of the change in current.
+        self.fire(type="i_leak_changed", channel=channel, current=i_leak)
+
+        ## Send a dummy value just for testing the workflow.
+        #self.fire(type="i_leak_changed", channel=channel, current=(float(voltage)/82.0)*500.0)
         
     def set_all_bias_voltages(self, listOfVoltages):
-        print "TBD"
+        pass

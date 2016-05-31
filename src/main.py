@@ -1,5 +1,13 @@
 # A tool to control and monitor the SiPM control board.
 
+# Make sure to:
+#   1. Convert the .ui file in the /ui folder to a .py file using:
+#       pyuic5 SCDMainWindow.ui > SCDMainWindow_Ui.py
+#   and copy the latter to the src folder.
+#
+#   2. Start the pigpio daemon using the command:
+#   sudo pigpiod
+
 import sys
 from PyQt5.QtWidgets import QApplication
 

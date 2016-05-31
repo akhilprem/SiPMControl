@@ -15,11 +15,9 @@ class SCDPresenter(QtCore.QObject):
 
         self.leakageCurrentChanged.connect(self._view.changeCurrent)
 
-    def handleBVChange(self, item):
-        channel = item.row() # The regulators are numbered starting from 0.
-        voltage = item.data(QtCore.Qt.DisplayRole)
+    def changeBV(self, channel, voltage):
         self._monitor.set_bias_voltage(channel, voltage)
 
     def handleMonitorEvent(self, event):
-        if event.type is "bv_changed":
+        if event.type is "i_leak_changed":
             self.leakageCurrentChanged.emit(event.channel, event.current)
