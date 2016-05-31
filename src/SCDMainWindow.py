@@ -6,7 +6,6 @@ from SCDPresenter import SCDPresenter
 class SCDMainWindow(QtWidgets.QMainWindow):
     
     def __init__(self, parent = None):
-#         QWidget.__init__(self, parent)    # This will work too.
         super(SCDMainWindow, self).__init__()
         self.ui = Ui_SCDMainWindow()
         self.ui.setupUi(self)
@@ -30,13 +29,21 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self.ui.adcTableView.verticalHeader().hide()
         self.ui.dacTableView.verticalHeader().hide()
         
-        # Make the first column uneditable. Is there a better way to do this?
+        # Fill column 1 with channel id and make the first column uneditable.
+        # Is there a better way to do the latter in one sweep?
         for row in range(self.NUM_ROWS): 
             index = self._dacVoltagesModel.index(row, 0, QtCore.QModelIndex())
-            self._dacVoltagesModel.setData(index, row + 1)
+            self._dacVoltagesModel.setData(index, row)
             item = self._dacVoltagesModel.itemFromIndex(index)
             item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)
         
+
     def setPresenter(self, presenter):
         self._presenter = presenter
         self._dacVoltagesModel.itemChanged.connect(self._presenter.handleBVChange)
+
+
+    def changeCurrent(self, channel, current):
+        index = self._adcReadOutModel.index(channel, 1, QtCore.QModelIndex())
+        self._adcReadOutModel.setData(index, current)
+        
