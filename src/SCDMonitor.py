@@ -1,16 +1,19 @@
 # This should be an observable that the presenter subscribes to.
 # This class will also host the thread that talks to the hardware.
 
+from PyQt5 import QtCore
+
 from SCDObservable import SCDObservable
 from SCDBoardInterface import SCDBoardInterface
 
-class SCDMonitor(SCDObservable):
+class SCDMonitor(QtCore.QObject, SCDObservable):
     
     def __init__(self):
         super(SCDMonitor, self).__init__()
         self._boardInterface = SCDBoardInterface() # TBD: Will need to specify parameters
 
-    def init(self):
+    @QtCore.pyqtSlot()
+    def initialize(self):
         self._boardInterface.init_i2c_channel()
         pass
     
@@ -22,7 +25,8 @@ class SCDMonitor(SCDObservable):
     
     def read_voltages(self):
         pass
-    
+
+    @QtCore.pyqtSlot(int, int)
     def set_bias_voltage(self, channel, voltage):
         # TBD: Change index to channel in SCDBoardInterface.
         
