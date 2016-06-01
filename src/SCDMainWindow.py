@@ -41,6 +41,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
             item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)
 
         self.ui.setAllBVButton.clicked.connect(self.setAllBVs)
+        self.ui.saveToFileButton.clicked.connect(self.saveToFile)
 
     def setPresenter(self, presenter):
         self._presenter = presenter
@@ -53,9 +54,11 @@ class SCDMainWindow(QtWidgets.QMainWindow):
             voltage = item.data(QtCore.Qt.DisplayRole)
             self._presenter.changeBV(channel, voltage)
         
+
     def changeCurrent(self, channel, current):
         index = self._channelVoltageCurrentModel.index(channel, 2, QtCore.QModelIndex())
         self._channelVoltageCurrentModel.setData(index, current)
+
 
     def setAllBVs(self, voltage):
         voltage = self.ui.setAllBVSpinBox.value()
@@ -63,5 +66,25 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         for row in range(self.NUM_CHANNELS):
             index = self._channelVoltageCurrentModel.index(row, 1, QtCore.QModelIndex())
             self._channelVoltageCurrentModel.setData(index, voltage)
-    
-        
+
+
+    def saveToFile(self):
+        fileNameExt = QtWidgets.QFileDialog.getSaveFileName(self, 'Save', '~/', '*.csv')
+        if fileNameExt:
+            fileName = fileNameExt[0]
+            if fileName[-4:] != '.csv':
+                fileName = fileName + '.csv'  # QFileDialog's convenience function doesn't add the extension.
+            
+            saveFile = open(fileName, 'w')
+            saveFile.write('ID, Bias Voltage(V), Leakage Current (uA)\n')
+            
+            # A very crude way of serializing the data model.
+            for row in range(self.NUM_CHANNELS):
+                data = [0, 0, 0]
+                for col in range(self._channelVoltageCurrentModel.columnCount()):
+                    index = self._channelVoltageCurrentModel.index(row, col, QtCore.QModelIndex())
+                    item = self._channelVoltageCurrentModel.itemFromIndex(index)
+                    data[col] = item.data(QtCore.Qt.DisplayRole)
+                saveFile.write("{},{},{}\n".format(data[0], data[1], data[2]))
+
+            saveFile.close()
