@@ -161,22 +161,6 @@
           </layout>
          </item>
          <item>
-          <spacer name="verticalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::MinimumExpanding</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>10</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <widget class="QPushButton" name="readOnceButton">
            <property name="text">
             <string>Read Once</string>
@@ -187,6 +171,13 @@
           <widget class="QPushButton" name="saveToFileButton">
            <property name="text">
             <string>Save to file</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="runChannelTestButton">
+           <property name="text">
+            <string>Run Channel Test</string>
            </property>
           </widget>
          </item>
@@ -290,8 +281,8 @@
         <zorder>saveToFileButton</zorder>
         <zorder>readOnceButton</zorder>
         <zorder>verticalSpacer_2</zorder>
-        <zorder>verticalSpacer_3</zorder>
         <zorder>verticalSpacer_4</zorder>
+        <zorder>runChannelTestButton</zorder>
        </widget>
       </item>
      </layout>
@@ -304,7 +295,7 @@
      <x>0</x>
      <y>0</y>
      <width>795</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
