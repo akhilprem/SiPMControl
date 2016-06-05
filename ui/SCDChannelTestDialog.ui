@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>SCDChannelTestDialog</class>
+ <widget class="QDialog" name="SCDChannelTestDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>160</height>
+    <height>183</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,24 +35,25 @@
     <widget class="QLineEdit" name="bvLine"/>
    </item>
    <item row="2" column="0">
-    <widget class="QLabel" name="saveFolderLabel">
+    <widget class="QLabel" name="saveLocLabel">
      <property name="text">
-      <string>Save Folder:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Help|QDialogButtonBox::Ok</set>
+      <string>Save File</string>
      </property>
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QLineEdit" name="saveFolderLine"/>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLineEdit" name="saveLocLine"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveLocBrowseButton">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item row="3" column="1">
     <spacer name="verticalSpacer">
@@ -67,6 +68,16 @@
      </property>
     </spacer>
    </item>
+   <item row="4" column="1">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Help|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>
@@ -74,7 +85,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>SCDChannelTestDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -90,7 +101,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>SCDChannelTestDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
