@@ -13,10 +13,18 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         
         self.NUM_CHANNELS = 48  # TBD: This information should come from elsewhere.
+        self.CTEST_MIN_SETTLING_TIME_MS = 50
+        self.CTEST_MAX_SETTLING_TIME_MS = 5000
+        self.CTEST_NOM_SETTLING_TIME_MS = 200
         
+        # Setup channel test dialog.
         self.cTestDlg = QDialog()
         self.cTestDlg.ui = Ui_SCDChannelTestDialog()
         self.cTestDlg.ui.setupUi(self.cTestDlg)
+        self.cTestDlg.ui.settlingTimeSpinBox.setMinimum(self.CTEST_MIN_SETTLING_TIME_MS)
+        self.cTestDlg.ui.settlingTimeSpinBox.setMaximum(self.CTEST_MAX_SETTLING_TIME_MS)
+        self.cTestDlg.ui.settlingTimeSpinBox.setValue(self.CTEST_NOM_SETTLING_TIME_MS)
+        
         
         self._adcReadOutModel = QtGui.QStandardItemModel(self.NUM_CHANNELS, 2, self)
         self._adcReadOutModel.setHorizontalHeaderLabels(["Reading", "Value(V)"]) # User vert. header to reg #.
@@ -68,6 +76,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         index = self._channelVoltageCurrentModel.index(channel, 2, QtCore.QModelIndex())
         self._channelVoltageCurrentModel.setData(index, current)
 
+    
     # TBD: Change this approach. Set BV should be a single value sent to the monitor.
     def setAllBVs(self, voltage):
         voltage = self.ui.setAllBVSpinBox.value()
@@ -76,6 +85,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
             index = self._channelVoltageCurrentModel.index(row, 1, QtCore.QModelIndex())
             self._channelVoltageCurrentModel.setData(index, voltage)
     
+    
     def openChannelTestDialog(self):
         self.cTestDlg.exec_()
         
@@ -83,6 +93,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
             isParamsOk, errorMsg, errorDetails = \
                 self._presenter.setChannelTestParams(self.cTestDlg.ui.channelLine.text(),
                                                      self.cTestDlg.ui.bvLine.text(),
+                                                     self.cTestDlg.ui.settlingTimeSpinBox.value(),
                                                      self.cTestDlg.ui.saveLocLine.text())
             if isParamsOk is False:
                 msg = QMessageBox()
@@ -94,7 +105,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
                 return
             
             # If the parameters are fine run the test.
-            self._presenter.runChannelTest()
+            self._presenter.startChannelTest()
 
     def saveToFile(self):
         fileName = self._getSaveLocationFromUser()
@@ -113,9 +124,11 @@ class SCDMainWindow(QtWidgets.QMainWindow):
 
             saveFile.close()
     
+    
     def browseCTestSaveLoc(self):
         fileName = self._getSaveLocationFromUser()
         self.cTestDlg.ui.saveLocLine.setText(fileName)
+    
     
     def _getSaveLocationFromUser(self):
         fileNameExt = QtWidgets.QFileDialog.getSaveFileName(self, 'Save', '~/Data.csv', '*.csv')
