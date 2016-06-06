@@ -4,28 +4,30 @@ import time
 class SCDBoardInterface():
     
     def __init__(self):
-        self._DAC1_ADDRESS  = 0x54
-        self._DAC2_ADDRESS  = 0x55
-        self._ADC1_ADDRESS  = 0x48
-        self._ADC2_ADDRESS  = 0x49
-        self._MUX_ADDRESS   = 0x4C
+        self._DAC1_ADDRESS      = 0x54
+        self._DAC2_ADDRESS      = 0x55
+        self._ADC1_ADDRESS      = 0x48
+        self._ADC2_ADDRESS      = 0x49
+        self._MUX_ADDRESS       = 0x4C
+        self._PULSER_ADDRESS    = 0x30
 
         self._BV_MAX = 82; # TBD: Is 82 the max voltage value?
         self._BV_MIN = 0;
 
         self._pi = pigpio.pi()
 
-        self._dac_1 = self._pi.i2c_open(1, self._DAC1_ADDRESS)
-        self._dac_2 = self._pi.i2c_open(1, self._DAC2_ADDRESS)
-        self._mux   = self._pi.i2c_open(1, self._MUX_ADDRESS) # All 6 MUXes (each with 8 chan) have same address
-        self._adc_1 = self._pi.i2c_open(1, self._ADC1_ADDRESS)
+        self._dac_1     = self._pi.i2c_open(1, self._DAC1_ADDRESS)
+        self._dac_2     = self._pi.i2c_open(1, self._DAC2_ADDRESS)
+        self._mux       = self._pi.i2c_open(1, self._MUX_ADDRESS) # All 6 MUXes (each with 8 chan) have same address
+        self._adc_1     = self._pi.i2c_open(1, self._ADC1_ADDRESS)
+        self._pulser    = self._pi.i2c_open(1, self._PULSER_ADDRESS)
 
 
     # Set the I2C MUX IC on the ngCCM Control Emulator to open the channel to the SiPM board
     def init_i2c_channel(self):
         i2c_mux = self._pi.i2c_open(1, 0x70)
         i2c_mux_cmd_byte = self._pi.i2c_read_byte(i2c_mux)
-        self._pi.i2c_write_byte(i2c_mux, (i2c_mux_cmd_byte | 0x02))
+        self._pi.i2c_write_byte(i2c_mux, (i2c_mux_cmd_byte | 0x06))
         print "Initialized the board."
         
 
@@ -82,7 +84,15 @@ class SCDBoardInterface():
         return (voltage * 500.0/2.5) # 2.5V ADC readout corresponds to 500 uA I_leak.
         
     def get_peltier_voltage(self):
-        print "TBD"
+        pass
         
-    # and etc.
+    def set_pulser_LED(self, enable=True):
+        cmd = [0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF]
+        if enable is False:
+            cmd[5] = 0xFF
+            cmd[6] = 0xFF
+
+        self._pi.i2c_write_device(self._pulser, cmd)
+        # (count, output) = self._pi.i2c_read_device(self._pulser, 11)
+
         

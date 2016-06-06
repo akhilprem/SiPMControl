@@ -16,3 +16,9 @@ class SCDBoardInterfaceMock:
     def get_leakage_current(self, channel):
         time.sleep(0.3)
         return self._i_leak[channel]
+
+    def set_pulser_LED(self, enable):
+        if enable:
+            print "LED ON"
+        else:
+            print "LED OFF"

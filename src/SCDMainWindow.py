@@ -22,6 +22,8 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self.cTestDlg.ui.settlingTimeSpinBox.setValue(SCDConstants.CTEST_NOM_SETTLING_TIME_MS)
         
         self.ui.i2cBusLineEdit.setText(str(SCDConstants.DEFAULT_I2C_BUS))
+
+        self.ui.readPerTimeSpinBox.setValue(SCDConstants.DEFAULT_PERIODIC_READ_INTERVAL_MS)
         
         self._adcReadOutModel = QtGui.QStandardItemModel(SCDConstants.NUM_DIAGNOSTICS, 2, self)
         self._adcReadOutModel.setHorizontalHeaderLabels(["Reading", "Value(V)"]) # User vert. header to reg #.
@@ -45,22 +47,33 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         # Is there a better way to do the latter in one sweep?
         for row in range(SCDConstants.NUM_CHANNELS): 
             index_0 = self._channelVoltageCurrentModel.index(row, 0, QtCore.QModelIndex())
+            index_1 = self._channelVoltageCurrentModel.index(row, 1, QtCore.QModelIndex())
             index_2 = self._channelVoltageCurrentModel.index(row, 2, QtCore.QModelIndex())
             self._channelVoltageCurrentModel.setData(index_0, row)
             item = self._channelVoltageCurrentModel.itemFromIndex(index_0)
             item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)
+            item = self._channelVoltageCurrentModel.itemFromIndex(index_1)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
             item = self._channelVoltageCurrentModel.itemFromIndex(index_2)
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemIsEditable)       
+        
+
+    def setPresenter(self, presenter):
+        self._presenter = presenter
         
         # Setup signals and slots for the UI
+        self._channelVoltageCurrentModel.itemChanged.connect(self.handleChannelItemChange)
+        self.ui.readPerStartButton.clicked.connect(self.startPeriodic)
+        self.ui.readPerStopButton.clicked.connect(self._presenter.stopPeriodic)
         self.ui.setAllBVButton.clicked.connect(self.setAllBVs)
         self.ui.saveToFileButton.clicked.connect(self.saveToFile)
         self.ui.runChannelTestButton.clicked.connect(self.openChannelTestDialog)
         self.cTestDlg.ui.saveLocBrowseButton.clicked.connect(self.browseCTestSaveLoc)
 
-    def setPresenter(self, presenter):
-        self._presenter = presenter
-        self._channelVoltageCurrentModel.itemChanged.connect(self.handleChannelItemChange)
+        turnLEDOn = lambda : self._presenter.setPulserLED(True)
+        turnLEDOff = lambda : self._presenter.setPulserLED(False)
+        self.ui.pulserLEDOnButton.clicked.connect(turnLEDOn)
+        self.ui.pulserLEDOffButton.clicked.connect(turnLEDOff) 
 
 
     def handleChannelItemChange(self, item):
@@ -74,9 +87,14 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         index = self._channelVoltageCurrentModel.index(channel, 1, QtCore.QModelIndex())
         self._channelVoltageCurrentModel.setData(index, voltage)
     
+
     def changeCurrentDisplay(self, channel, current):
         index = self._channelVoltageCurrentModel.index(channel, 2, QtCore.QModelIndex())
         self._channelVoltageCurrentModel.setData(index, current)
+
+
+    def startPeriodic(self):
+        self._presenter.startPeriodic(self.ui.readPerTimeSpinBox.value())
 
     
     # TBD: Change this approach. Set BV should be a single value sent to the monitor.
@@ -103,8 +121,16 @@ class SCDMainWindow(QtWidgets.QMainWindow):
                 msg.exec_()
                 return
             
-            # If the parameters are fine run the test.
+            # Disconnect itemChanged signal so that 'bv_adjusted' event does not
+            # cause the current to be set a second time. This will be reconnected on
+            # 'channel_test_finished' event.
+            self._channelVoltageCurrentModel.itemChanged.disconnect(self.handleChannelItemChange)
             self._presenter.startChannelTest()
+
+
+    def handleChannelTestFinished(self):
+        self._channelVoltageCurrentModel.itemChanged.connect(self.handleChannelItemChange)
+
 
     def saveToFile(self):
         fileName = self._getSaveLocationFromUser()

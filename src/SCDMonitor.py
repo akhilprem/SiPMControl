@@ -6,25 +6,59 @@ import time
 from PyQt5 import QtCore
 
 from SCDObservable import SCDObservable
-from SCDBoardInterfaceMock import SCDBoardInterfaceMock
+from SCDBoardInterface import SCDBoardInterface
 from SCDConstants import SCDConstants
 
 class SCDMonitor(QtCore.QObject, SCDObservable):
     
     def __init__(self):
         super(SCDMonitor, self).__init__()
-        self._boardInterface = SCDBoardInterfaceMock() # TBD: Will need to specify parameters
+        self._boardInterface = SCDBoardInterface() # TBD: Will need to specify parameters
+
+        self._isRunPeriodic = False
+        self._mutex = QtCore.QMutex()
 
     @QtCore.pyqtSlot()
     def initialize(self):
         self._boardInterface.init_i2c_channel()
         pass
-    
-    def startPeriodic(self, timeIntervalInMilliSec):
-        pass
+
+    @QtCore.pyqtSlot(int)
+    def start_periodic(self, timeIntervalInMs):
+        self._mutex.lock()
+        self._isRunPeriodic = True
+        self._mutex.unlock()
+
+        channel = 0
+        start_time = 0
+        end_time = 0
+        wait_time = 0
         
-    def stopPeriodic(self, timeIntervalInMilliSec):
-        pass
+        while True:
+            self._mutex.lock()
+            if self._isRunPeriodic is False:
+                self._mutex.unlock()
+                break
+            self._mutex.unlock()
+
+            if channel == 0:
+                start_time = time.time()
+                
+            i_leak = self._boardInterface.get_leakage_current(channel)     
+            self.fire(type="i_leak_changed", channel=channel, current=i_leak)
+
+            channel += 1
+            if channel == SCDConstants.NUM_CHANNELS:
+                end_time = time.time()
+                wait_time = max(0, timeIntervalInMs/1000.0 - (end_time - start_time))
+                time.sleep(wait_time)
+                channel = 0
+
+    # This has to called from the presenter directly, i.e. from the UI thread.
+    def stop_periodic(self):
+        self._mutex.lock()
+        self._isRunPeriodic = False
+        self._mutex.unlock()
     
     
     @QtCore.pyqtSlot(int, float)
@@ -84,3 +118,7 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
             readings[voltage] = i_readings # Save readings across channels for this voltage.
             
         self.fire(type="channel_test_finished", readings=readings)
+
+    @QtCore.pyqtSlot(bool)
+    def set_pulser_LED(self, enable):
+        self._boardInterface.set_pulser_LED(enable)

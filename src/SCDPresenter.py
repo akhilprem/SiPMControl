@@ -36,7 +36,17 @@ class SCDPresenter(QtCore.QObject):
         self.biasVoltageAdjusted.connect(self._view.changeVoltageDisplay)
         self.leakageCurrentChanged.connect(self._view.changeCurrentDisplay)
         self.channelTestFinished.connect(self.saveChannelTestData)
-    
+        self.channelTestFinished.connect(self._view.handleChannelTestFinished)
+
+
+    def startPeriodic(self, timeIntervalInMs):
+        QtCore.QMetaObject.invokeMethod(self._monitor, 'start_periodic', Qt.QueuedConnection,
+                                        QtCore.Q_ARG(int, timeIntervalInMs))
+
+
+    def stopPeriodic(self):
+        self._monitor.stop_periodic() # NOTE: Only this method is directly invoked.
+
     
     def changeBV(self, channel, voltage):
         QtCore.QMetaObject.invokeMethod(self._monitor, 'set_bias_voltage', Qt.QueuedConnection,
@@ -102,4 +112,8 @@ class SCDPresenter(QtCore.QObject):
             
         except Exception as e:
             print "Error saving channel test data to file."
+
+    def setPulserLED(self, enable):
+        QtCore.QMetaObject.invokeMethod(self._monitor, 'set_pulser_LED', Qt.QueuedConnection,
+                                        QtCore.Q_ARG(bool, enable))
                 
