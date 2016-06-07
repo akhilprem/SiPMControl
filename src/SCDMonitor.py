@@ -7,6 +7,7 @@ from PyQt5 import QtCore
 
 from SCDObservable import SCDObservable
 from SCDBoardInterfaceMock import SCDBoardInterfaceMock
+from SCDConstants import SCDConstants
 
 class SCDMonitor(QtCore.QObject, SCDObservable):
     
@@ -25,9 +26,7 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
     def stopPeriodic(self, timeIntervalInMilliSec):
         pass
     
-    def read_voltages(self):
-        pass
-
+    
     @QtCore.pyqtSlot(int, float)
     def set_bias_voltage(self, channel, voltage):
         # TBD: Change index to channel in SCDBoardInterface.
@@ -43,9 +42,21 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
 
 #         # Send a dummy value just for testing the workflow.
 #         self.fire(type="i_leak_changed", channel=channel, current=(float(voltage)/82.0)*500.0)
+    
+    
+    @QtCore.pyqtSlot(float)    
+    def set_all_bias_voltages(self, voltage):
+        channels = range(SCDConstants.NUM_CHANNELS)
+        for channel in channels:
+            self._boardInterface.set_bias_voltage(channel, voltage)
+            self.fire(type="bv_adjusted", channel=channel, voltage=voltage)
         
-    def set_all_bias_voltages(self, listOfVoltages):
-        pass
+        time.sleep(SCDConstants.DAC_SETTLING_TIME/1000.0)
+        
+        for channel in channels:
+            i_leak = self._boardInterface.get_leakage_current(channel)
+            # Also update observers in "real-time"
+            self.fire(type="i_leak_changed", channel=channel, current=i_leak)
     
     
     # This method runs the channel test, and then sends back the collected data all together.

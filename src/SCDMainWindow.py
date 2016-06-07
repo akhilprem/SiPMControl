@@ -22,7 +22,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self.cTestDlg.ui.settlingTimeSpinBox.setValue(SCDConstants.CTEST_NOM_SETTLING_TIME_MS)
         
         
-        self._adcReadOutModel = QtGui.QStandardItemModel(SCDConstants.NUM_CHANNELS, 2, self)
+        self._adcReadOutModel = QtGui.QStandardItemModel(SCDConstants.NUM_DIAGNOSTICS, 2, self)
         self._adcReadOutModel.setHorizontalHeaderLabels(["Reading", "Value(V)"]) # User vert. header to reg #.
         self.ui.adcTableView.setModel(self._adcReadOutModel)
         
@@ -35,6 +35,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         hHeader.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         hHeader = self.ui.dacTableView.horizontalHeader()
         hHeader.setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        hHeader.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
         
         self.ui.adcTableView.verticalHeader().hide()
         self.ui.dacTableView.verticalHeader().hide()
@@ -80,10 +81,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
     # TBD: Change this approach. Set BV should be a single value sent to the monitor.
     def setAllBVs(self, voltage):
         voltage = self.ui.setAllBVSpinBox.value()
-        
-        for row in range(SCDConstants.NUM_CHANNELS):
-            index = self._channelVoltageCurrentModel.index(row, 1, QtCore.QModelIndex())
-            self._channelVoltageCurrentModel.setData(index, voltage)
+        self._presenter.setAllBVs(voltage)
     
     
     def openChannelTestDialog(self):

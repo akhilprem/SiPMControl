@@ -37,6 +37,7 @@ class SCDPresenter(QtCore.QObject):
         self.leakageCurrentChanged.connect(self._view.changeCurrentDisplay)
         self.channelTestFinished.connect(self.saveChannelTestData)
     
+    
     def changeBV(self, channel, voltage):
         QtCore.QMetaObject.invokeMethod(self._monitor, 'set_bias_voltage', Qt.QueuedConnection,
                                         QtCore.Q_ARG(int, channel),
@@ -44,6 +45,11 @@ class SCDPresenter(QtCore.QObject):
         
 #         self.biasVoltageSet.emit(channel, float(voltage))
 
+
+    def setAllBVs(self, voltage):
+        QtCore.QMetaObject.invokeMethod(self._monitor, 'set_all_bias_voltages', Qt.QueuedConnection,
+                                        QtCore.Q_ARG(float, voltage))
+    
     
     # This function will be invoked inside the monitor thread. We communicate the changes made in
     # the hardware via Qt signals and slots which automatically takes care of communication between threads.
@@ -57,6 +63,7 @@ class SCDPresenter(QtCore.QObject):
         elif event.type is "channel_test_finished":
             self.channelTestReadings = event.readings # TBD: Protect this with a mutex.
             self.channelTestFinished.emit()
+    
     
     def setChannelTestParams(self, channelsTxt, biasVoltagesTxt, settlingTimeMs, saveLocation):
         try:
@@ -74,12 +81,14 @@ class SCDPresenter(QtCore.QObject):
         
         return (True, "", "")
     
+    
     def startChannelTest(self):
         QtCore.QMetaObject.invokeMethod(self._monitor, 'run_channel_test', Qt.QueuedConnection,
                                         QtCore.Q_ARG(list, self.channelTestParams.channels),
                                         QtCore.Q_ARG(list, self.channelTestParams.biasVoltages),
                                         QtCore.Q_ARG(int, self.channelTestParams.settlingTimeMs))
         
+    
     def saveChannelTestData(self):
         try:
             saveFile = open(self.channelTestParams.saveLoc, 'w')
