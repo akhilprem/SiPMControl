@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox
 from SCDMainWindow_Ui import Ui_SCDMainWindow
 from SCDChannelTestDialog_Ui import Ui_SCDChannelTestDialog
 from SCDPresenter import SCDPresenter
+from SCDConstants import SCDConstants
 
 class SCDMainWindow(QtWidgets.QMainWindow):
     
@@ -12,25 +13,20 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self.ui = Ui_SCDMainWindow()
         self.ui.setupUi(self)
         
-        self.NUM_CHANNELS = 48  # TBD: This information should come from elsewhere.
-        self.CTEST_MIN_SETTLING_TIME_MS = 50
-        self.CTEST_MAX_SETTLING_TIME_MS = 5000
-        self.CTEST_NOM_SETTLING_TIME_MS = 200
-        
         # Setup channel test dialog.
         self.cTestDlg = QDialog()
         self.cTestDlg.ui = Ui_SCDChannelTestDialog()
         self.cTestDlg.ui.setupUi(self.cTestDlg)
-        self.cTestDlg.ui.settlingTimeSpinBox.setMinimum(self.CTEST_MIN_SETTLING_TIME_MS)
-        self.cTestDlg.ui.settlingTimeSpinBox.setMaximum(self.CTEST_MAX_SETTLING_TIME_MS)
-        self.cTestDlg.ui.settlingTimeSpinBox.setValue(self.CTEST_NOM_SETTLING_TIME_MS)
+        self.cTestDlg.ui.settlingTimeSpinBox.setMinimum(SCDConstants.CTEST_MIN_SETTLING_TIME_MS)
+        self.cTestDlg.ui.settlingTimeSpinBox.setMaximum(SCDConstants.CTEST_MAX_SETTLING_TIME_MS)
+        self.cTestDlg.ui.settlingTimeSpinBox.setValue(SCDConstants.CTEST_NOM_SETTLING_TIME_MS)
         
         
-        self._adcReadOutModel = QtGui.QStandardItemModel(self.NUM_CHANNELS, 2, self)
+        self._adcReadOutModel = QtGui.QStandardItemModel(SCDConstants.NUM_CHANNELS, 2, self)
         self._adcReadOutModel.setHorizontalHeaderLabels(["Reading", "Value(V)"]) # User vert. header to reg #.
         self.ui.adcTableView.setModel(self._adcReadOutModel)
         
-        self._channelVoltageCurrentModel = QtGui.QStandardItemModel(self.NUM_CHANNELS, 3, self)
+        self._channelVoltageCurrentModel = QtGui.QStandardItemModel(SCDConstants.NUM_CHANNELS, 3, self)
         self._channelVoltageCurrentModel.setHorizontalHeaderLabels(["ID", "Bias Voltage(V)", "Leakage Current(uA)"])
         self.ui.dacTableView.setModel(self._channelVoltageCurrentModel)
         
@@ -45,7 +41,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         
         # Fill column 1 with channel id and make the first and third column uneditable.
         # Is there a better way to do the latter in one sweep?
-        for row in range(self.NUM_CHANNELS): 
+        for row in range(SCDConstants.NUM_CHANNELS): 
             index_0 = self._channelVoltageCurrentModel.index(row, 0, QtCore.QModelIndex())
             index_2 = self._channelVoltageCurrentModel.index(row, 2, QtCore.QModelIndex())
             self._channelVoltageCurrentModel.setData(index_0, row)
@@ -69,10 +65,14 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         if item.column() == 1: # i.e. if the voltage was changed
             channel = item.row() # The regulators are numbered starting from 0.
             voltage = item.data(QtCore.Qt.DisplayRole)
-            self._presenter.changeBV(channel, voltage)
+            self._presenter.changeBV(int(channel), float(voltage))
         
 
-    def changeCurrent(self, channel, current):
+    def changeVoltageDisplay(self, channel, voltage):
+        index = self._channelVoltageCurrentModel.index(channel, 1, QtCore.QModelIndex())
+        self._channelVoltageCurrentModel.setData(index, voltage)
+    
+    def changeCurrentDisplay(self, channel, current):
         index = self._channelVoltageCurrentModel.index(channel, 2, QtCore.QModelIndex())
         self._channelVoltageCurrentModel.setData(index, current)
 
@@ -81,7 +81,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
     def setAllBVs(self, voltage):
         voltage = self.ui.setAllBVSpinBox.value()
         
-        for row in range(self.NUM_CHANNELS):
+        for row in range(SCDConstants.NUM_CHANNELS):
             index = self._channelVoltageCurrentModel.index(row, 1, QtCore.QModelIndex())
             self._channelVoltageCurrentModel.setData(index, voltage)
     
@@ -114,7 +114,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
             saveFile.write('ID, Bias Voltage(V), Leakage Current (uA)\n')
             
             # A very crude way of serializing the data model.
-            for row in range(self.NUM_CHANNELS):
+            for row in range(SCDConstants.NUM_CHANNELS):
                 data = [0, 0, 0]
                 for col in range(self._channelVoltageCurrentModel.columnCount()):
                     index = self._channelVoltageCurrentModel.index(row, col, QtCore.QModelIndex())

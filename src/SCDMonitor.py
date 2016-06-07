@@ -6,13 +6,13 @@ import time
 from PyQt5 import QtCore
 
 from SCDObservable import SCDObservable
-from SCDBoardInterface import SCDBoardInterface
+from SCDBoardInterfaceMock import SCDBoardInterfaceMock
 
 class SCDMonitor(QtCore.QObject, SCDObservable):
     
     def __init__(self):
         super(SCDMonitor, self).__init__()
-        self._boardInterface = SCDBoardInterface() # TBD: Will need to specify parameters
+        self._boardInterface = SCDBoardInterfaceMock() # TBD: Will need to specify parameters
 
     @QtCore.pyqtSlot()
     def initialize(self):
@@ -28,7 +28,7 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
     def read_voltages(self):
         pass
 
-    @QtCore.pyqtSlot(int, int)
+    @QtCore.pyqtSlot(int, float)
     def set_bias_voltage(self, channel, voltage):
         # TBD: Change index to channel in SCDBoardInterface.
         
@@ -49,6 +49,7 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
     
     
     # This method runs the channel test, and then sends back the collected data all together.
+    @QtCore.pyqtSlot(list, list, int)
     def run_channel_test(self, channels, biasVoltages, settlingTimeMs):
         readings = {} # Dictionary of voltage: {channel:i_leak}
         
@@ -57,6 +58,7 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
             # 1. Set the voltage for all channels in the list
             for channel in channels:
                 self._boardInterface.set_bias_voltage(channel, voltage)
+                self.fire(type="bv_adjusted", channel=channel, voltage=voltage)
             
             # 2. Wait for all channels to settle
             time.sleep(settlingTimeMs/1000.0)

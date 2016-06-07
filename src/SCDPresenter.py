@@ -12,8 +12,10 @@ class SCDChannelTestParams:
 class SCDPresenter(QtCore.QObject):
 
     # Define the signals
+    biasVoltageAdjusted = QtCore.pyqtSignal(int, float)
     leakageCurrentChanged = QtCore.pyqtSignal(int, float)
     channelTestFinished = QtCore.pyqtSignal()
+#     biasVoltageSet = QtCore.pyqtSignal(int, float)
     
     def __init__(self, monitor, view):
         super(SCDPresenter, self).__init__()
@@ -21,6 +23,7 @@ class SCDPresenter(QtCore.QObject):
         self._view = view
         self._thread = QtCore.QThread()
         
+#         self.biasVoltageSet.connect(self._monitor.set_bias_voltage)
         self._monitor.subscribe(self.handleMonitorEvent)
         self._monitor.moveToThread(self._thread)
         
@@ -29,28 +32,33 @@ class SCDPresenter(QtCore.QObject):
         
         self.channelTestParams = SCDChannelTestParams()
         self.channelTestReadings = {} # Dictionary with structure --> voltage: {channel:i_leak}
-
-        self.leakageCurrentChanged.connect(self._view.changeCurrent)
+        
+        self.biasVoltageAdjusted.connect(self._view.changeVoltageDisplay)
+        self.leakageCurrentChanged.connect(self._view.changeCurrentDisplay)
         self.channelTestFinished.connect(self.saveChannelTestData)
-
     
     def changeBV(self, channel, voltage):
         QtCore.QMetaObject.invokeMethod(self._monitor, 'set_bias_voltage', Qt.QueuedConnection,
                                         QtCore.Q_ARG(int, channel),
-                                        QtCore.Q_ARG(int, voltage)) # FIX to float
-        # self._monitor.set_bias_voltage(channel, voltage)
+                                        QtCore.Q_ARG(float, voltage))
+        
+#         self.biasVoltageSet.emit(channel, float(voltage))
 
     
-    # This function will be invoked inside the monitor thread
+    # This function will be invoked inside the monitor thread. We communicate the changes made in
+    # the hardware via Qt signals and slots which automatically takes care of communication between threads.
     def handleMonitorEvent(self, event):
-        if event.type is "i_leak_changed":
+        if event.type is "bv_adjusted":
+            self.biasVoltageAdjusted.emit(event.channel, event.voltage)
+        
+        elif event.type is "i_leak_changed":
             self.leakageCurrentChanged.emit(event.channel, event.current)
         
         elif event.type is "channel_test_finished":
             self.channelTestReadings = event.readings # TBD: Protect this with a mutex.
             self.channelTestFinished.emit()
     
-    def setChannelTestParams(self, channelsTxt, biasVoltagesTxt, settlingTime, saveLocation):
+    def setChannelTestParams(self, channelsTxt, biasVoltagesTxt, settlingTimeMs, saveLocation):
         try:
             self.channelTestParams.channels = [int(ch) for ch in channelsTxt.split(",")]
         except ValueError: # Empty text also causes value error.
@@ -61,15 +69,16 @@ class SCDPresenter(QtCore.QObject):
         except ValueError:
             return (False, "Invalid bias voltage(s).", "")
         
-        self.channelTestParams.settlingTimeMs = settlingTimeMs
+        self.channelTestParams.settlingTimeMs = int(settlingTimeMs)
         self.channelTestParams.saveLoc = saveLocation
         
         return (True, "", "")
     
     def startChannelTest(self):
-        self._monitor.run_channel_test(self.channelTestParams.channels,
-                                       self.channelTestParams.biasVoltages,
-                                       self.channelTestParams.settlingTimeMs)
+        QtCore.QMetaObject.invokeMethod(self._monitor, 'run_channel_test', Qt.QueuedConnection,
+                                        QtCore.Q_ARG(list, self.channelTestParams.channels),
+                                        QtCore.Q_ARG(list, self.channelTestParams.biasVoltages),
+                                        QtCore.Q_ARG(int, self.channelTestParams.settlingTimeMs))
         
     def saveChannelTestData(self):
         try:
