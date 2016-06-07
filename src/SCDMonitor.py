@@ -6,14 +6,14 @@ import time
 from PyQt5 import QtCore
 
 from SCDObservable import SCDObservable
-from SCDBoardInterfaceMock import SCDBoardInterfaceMock
+from SCDBoardInterface import SCDBoardInterface
 from SCDConstants import SCDConstants
 
 class SCDMonitor(QtCore.QObject, SCDObservable):
     
     def __init__(self):
         super(SCDMonitor, self).__init__()
-        self._boardInterface = SCDBoardInterfaceMock() # TBD: Will need to specify parameters
+        self._boardInterface = SCDBoardInterface() # TBD: Will need to specify parameters
 
         self._isRunPeriodic = False
         self._mutex = QtCore.QMutex()

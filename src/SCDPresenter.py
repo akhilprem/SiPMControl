@@ -49,7 +49,7 @@ class SCDPresenter(QtCore.QObject):
         self._monitor.stop_periodic() # NOTE: Only this method is directly invoked.
 
     
-    def readAllOnce(self):
+    def readAllDiagnostics(self):
         QtCore.QMetaObject.invokeMethod(self._monitor, 'read_diagnostics', Qt.QueuedConnection)
     
     

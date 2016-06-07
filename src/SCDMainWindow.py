@@ -74,7 +74,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self._channelVoltageCurrentModel.itemChanged.connect(self.handleChannelItemChange)
         self.ui.readPerStartButton.clicked.connect(self.startPeriodic)
         self.ui.readPerStopButton.clicked.connect(self._presenter.stopPeriodic)
-        self.ui.readOnceButton.clicked.connect(self._presenter.readAllOnce)
+        self.ui.readDiagButton.clicked.connect(self._presenter.readAllDiagnostics)
         self.ui.setAllBVButton.clicked.connect(self.setAllBVs)
         self.ui.saveToFileButton.clicked.connect(self.saveToFile)
         self.ui.runChannelTestButton.clicked.connect(self.openChannelTestDialog)

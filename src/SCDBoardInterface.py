@@ -14,7 +14,7 @@ class SCDBoardInterface():
         self._BV_MAX = 82; # TBD: Is 82 the max voltage value?
         self._BV_MIN = 0;
         
-        self._I2C_SLEEP_TIME = 0.1 # The delay in seconds introduced between consecutive I2C operations
+        self._I2C_SLEEP_TIME = 0.05 # The delay in seconds introduced between consecutive I2C operations
 
         self._pi = pigpio.pi()
 
@@ -109,7 +109,7 @@ class SCDBoardInterface():
             print "Failed to write to ADC channel: {}.".format(n)
         
         time.sleep(self._I2C_SLEEP_TIME)
-        (count, data) = self._pi.i2c_read_device(self._adc_1, 2)
+        (count, data) = self._pi.i2c_read_device(self._adc_2, 2)
 
         voltage = ((data[0] << 8) | data[1])/float(2**12) * 2.5
         return voltage
