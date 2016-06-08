@@ -1,6 +1,7 @@
 # A container to store the various constants to be used at different parts of the program.
 
 class SCDConstants:
+    DEFAULT_I2C_BUS = 1
     NUM_CHANNELS = 48
     NUM_DIAGNOSTICS = 8
     CTEST_MIN_SETTLING_TIME_MS = 50

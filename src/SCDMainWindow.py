@@ -21,6 +21,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self.cTestDlg.ui.settlingTimeSpinBox.setMaximum(SCDConstants.CTEST_MAX_SETTLING_TIME_MS)
         self.cTestDlg.ui.settlingTimeSpinBox.setValue(SCDConstants.CTEST_NOM_SETTLING_TIME_MS)
         
+        self.ui.i2cBusLineEdit.setText(str(SCDConstants.DEFAULT_I2C_BUS))
         
         self._adcReadOutModel = QtGui.QStandardItemModel(SCDConstants.NUM_DIAGNOSTICS, 2, self)
         self._adcReadOutModel.setHorizontalHeaderLabels(["Reading", "Value(V)"]) # User vert. header to reg #.

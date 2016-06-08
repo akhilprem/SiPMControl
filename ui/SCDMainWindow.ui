@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>795</width>
-    <height>600</height>
+    <height>640</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -80,13 +80,13 @@
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>30</height>
+          <height>20</height>
          </size>
         </property>
        </spacer>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="QGroupBox" name="settingsAndControlsGroup">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -182,6 +182,24 @@
           </widget>
          </item>
          <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QPushButton" name="pulserLEDOnButton">
+             <property name="text">
+              <string>Turn Pulser LED ON</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pulserLEDOffButton">
+             <property name="text">
+              <string>Turn Pulser LED OFF</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -232,7 +250,7 @@
            <item>
             <widget class="QPushButton" name="i2cBusSetButton">
              <property name="text">
-              <string>Set</string>
+              <string>Initialize</string>
              </property>
             </widget>
            </item>
@@ -283,6 +301,7 @@
         <zorder>verticalSpacer_2</zorder>
         <zorder>verticalSpacer_4</zorder>
         <zorder>runChannelTestButton</zorder>
+        <zorder>horizontalLayoutWidget</zorder>
        </widget>
       </item>
      </layout>
@@ -295,7 +314,7 @@
      <x>0</x>
      <y>0</y>
      <width>795</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
