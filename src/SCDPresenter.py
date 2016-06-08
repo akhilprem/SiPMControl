@@ -14,6 +14,7 @@ class SCDPresenter(QtCore.QObject):
     # Define the signals
     biasVoltageAdjusted = QtCore.pyqtSignal(int, float)
     leakageCurrentChanged = QtCore.pyqtSignal(int, float)
+    setAllBVFinished = QtCore.pyqtSignal()
     channelTestFinished = QtCore.pyqtSignal()
     readDiagnosticsFinished = QtCore.pyqtSignal(list)
 #     biasVoltageSet = QtCore.pyqtSignal(int, float)
@@ -37,7 +38,8 @@ class SCDPresenter(QtCore.QObject):
         self.biasVoltageAdjusted.connect(self._view.changeVoltageDisplay)
         self.leakageCurrentChanged.connect(self._view.changeCurrentDisplay)
         self.channelTestFinished.connect(self.saveChannelTestData)
-        self.channelTestFinished.connect(self._view.handleChannelTestFinished)
+        self.setAllBVFinished.connect(self._view.handleSequentialOperationFinished)
+        self.channelTestFinished.connect(self._view.handleSequentialOperationFinished)
         self.readDiagnosticsFinished.connect(self._view.changeDiagnosticsDisplay)
 
     def startPeriodic(self, timeIntervalInMs):
@@ -74,6 +76,9 @@ class SCDPresenter(QtCore.QObject):
         
         elif event.type is "i_leak_changed":
             self.leakageCurrentChanged.emit(event.channel, event.current)
+
+        elif event.type is "set_all_bv_finished":
+            self.setAllBVFinished.emit()
         
         elif event.type is "channel_test_finished":
             self.channelTestReadings = event.readings # TBD: Protect this with a mutex.

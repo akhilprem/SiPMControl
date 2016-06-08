@@ -21,7 +21,14 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
     @QtCore.pyqtSlot()
     def initialize(self):
         self._boardInterface.init_i2c_channel()
-        pass
+
+        # Do a dummy read on each of the ADCs. It was noticed that
+        # right after powering up the board for the first time, the
+        # first reading from the ADCs are wrong. These dummy reads
+        # should get those out of the way.
+        self._boardInterface.get_diagnostic_voltage(0)
+        self._boardInterface.get_leakage_current(0)
+        
 
     @QtCore.pyqtSlot(int)
     def start_periodic(self, timeIntervalInMs):
@@ -73,10 +80,7 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
  
         # 3. Notify the observers of the change in current.
         self.fire(type="i_leak_changed", channel=channel, current=i_leak)
-
-#         # Send a dummy value just for testing the workflow.
-#         self.fire(type="i_leak_changed", channel=channel, current=(float(voltage)/82.0)*500.0)
-    
+        
     
     @QtCore.pyqtSlot(float)    
     def set_all_bias_voltages(self, voltage):
@@ -91,6 +95,8 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
             i_leak = self._boardInterface.get_leakage_current(channel)
             # Also update observers in "real-time"
             self.fire(type="i_leak_changed", channel=channel, current=i_leak)
+
+        self.fire(type="set_all_bv_finished")
     
     
     # This method runs the channel test, and then sends back the collected data all together.

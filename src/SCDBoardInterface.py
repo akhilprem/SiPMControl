@@ -80,7 +80,7 @@ class SCDBoardInterface():
         try:    # TBD: Figure out how to handle the exception more elegantly in the UI.
             self._pi.i2c_write_byte(self._adc_1, adc_command)
         except:
-            print "Failed to write to ADC channel: {}, continuing".format(n)
+            print "Failed to write to ADC 1 channel: {}, continuing".format(n)
 
         time.sleep(self._I2C_SLEEP_TIME)
         (count, data) = self._pi.i2c_read_device(self._adc_1, 2)
@@ -106,7 +106,7 @@ class SCDBoardInterface():
         try:
             self._pi.i2c_write_byte(self._adc_2, adc_command)
         except:
-            print "Failed to write to ADC channel: {}.".format(n)
+            print "Failed to write to ADC 2 channel: {}.".format(adc_chan)
         
         time.sleep(self._I2C_SLEEP_TIME)
         (count, data) = self._pi.i2c_read_device(self._adc_2, 2)

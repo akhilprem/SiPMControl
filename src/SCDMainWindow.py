@@ -115,8 +115,11 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self._presenter.startPeriodic(self.ui.readPerTimeSpinBox.value())
 
     
-    # TBD: Change this approach. Set BV should be a single value sent to the monitor.
     def setAllBVs(self, voltage):
+        # Disconnect the itemChanged signal since the current values in the table
+        # will be updated by the presenter in this mode of operation.
+        self._channelVoltageCurrentModel.itemChanged.disconnect(self.handleChannelItemChange)
+        
         voltage = self.ui.setAllBVSpinBox.value()
         self._presenter.setAllBVs(voltage)
     
@@ -146,7 +149,10 @@ class SCDMainWindow(QtWidgets.QMainWindow):
             self._presenter.startChannelTest()
 
 
-    def handleChannelTestFinished(self):
+    # Setting all BVs and Channel Test consitute sequential operations. During these
+    # we temporarily stop monitoring events on the table view. This function resumes
+    # said mointoring.
+    def handleSequentialOperationFinished(self):
         self._channelVoltageCurrentModel.itemChanged.connect(self.handleChannelItemChange)
 
 

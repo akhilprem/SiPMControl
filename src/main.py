@@ -1,7 +1,7 @@
 # A tool to control and monitor the SiPM control board.
 
 # Make sure to:
-#   1. Convert the .ui file in the /ui folder to a .py file using:
+#   1. Convert the .ui files in the /ui folder to a .py file using:
 #       pyuic5 SCDMainWindow.ui > SCDMainWindow_Ui.py
 #   and copy the latter to the src folder.
 #
