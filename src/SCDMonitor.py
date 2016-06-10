@@ -6,14 +6,14 @@ import time
 from PyQt5 import QtCore
 
 from SCDObservable import SCDObservable
-from SCDBoardInterface import SCDBoardInterface
+from SCDBoardInterfaceMock import SCDBoardInterfaceMock
 from SCDConstants import SCDConstants
 
 class SCDMonitor(QtCore.QObject, SCDObservable):
     
     def __init__(self):
         super(SCDMonitor, self).__init__()
-        self._boardInterface = SCDBoardInterface() # TBD: Will need to specify parameters
+        self._boardInterface = SCDBoardInterfaceMock() # TBD: Will need to specify parameters
 
         self._isRunPeriodic = False
         self._mutex = QtCore.QMutex()
@@ -122,3 +122,12 @@ class SCDMonitor(QtCore.QObject, SCDObservable):
     @QtCore.pyqtSlot(bool)
     def set_pulser_LED(self, enable):
         self._boardInterface.set_pulser_LED(enable)
+    
+    @QtCore.pyqtSlot()
+    def read_diagnostics(self):
+        voltages = []
+        
+        for channel in range(SCDConstants.NUM_DIAGNOSTICS):
+            voltages.append(self._boardInterface.get_diagnostic_voltage(channel))
+
+        self.fire(type="read_diagnostics_finished", voltages=voltages)

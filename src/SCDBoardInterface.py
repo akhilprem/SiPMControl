@@ -13,6 +13,8 @@ class SCDBoardInterface():
 
         self._BV_MAX = 82; # TBD: Is 82 the max voltage value?
         self._BV_MIN = 0;
+        
+        self._I2C_SLEEP_TIME = 0.1 # The delay in seconds introduced between consecutive I2C operations
 
         self._pi = pigpio.pi()
 
@@ -20,7 +22,10 @@ class SCDBoardInterface():
         self._dac_2     = self._pi.i2c_open(1, self._DAC2_ADDRESS)
         self._mux       = self._pi.i2c_open(1, self._MUX_ADDRESS) # All 6 MUXes (each with 8 chan) have same address
         self._adc_1     = self._pi.i2c_open(1, self._ADC1_ADDRESS)
+        self._adc_2     = self._pi.i2c_open(1, self._ADC2_ADDRESS)
         self._pulser    = self._pi.i2c_open(1, self._PULSER_ADDRESS)
+        
+        self._adc_chan_lookup = [0b000, 0b100, 0b001, 0b101, 0b010, 0b110, 0b011, 0b111]
 
 
     # Set the I2C MUX IC on the ngCCM Control Emulator to open the channel to the SiPM board
@@ -54,38 +59,36 @@ class SCDBoardInterface():
         dac_v_in[1] = (0xc0 | (0x3f & (ivoltage >> 6)))
         dac_v_in[2] = (0xfc & ivoltage << 2)
         
-        time.sleep(0.1)
+        time.sleep(self._I2C_SLEEP_TIME)
         self._pi.i2c_write_device(dac, dac_config)
-        time.sleep(0.1)
+        time.sleep(self._I2C_SLEEP_TIME)
         self._pi.i2c_write_device(dac, dac_v_in)
 
         
     def get_leakage_current(self, index):
         n = index
         mux_chan = n % 8
-        time.sleep(0.1)
-        self._pi.i2c_write_byte(self._mux, 1 << mux_chan ) # Setting input shift register to select channel
+        time.sleep(self._I2C_SLEEP_TIME)
+        self._pi.i2c_write_byte(self._mux, 1 << mux_chan ) # Setting input shift register to select MUX channel
 
-        adc_chan_lookup = [0b000, 0b100, 0b001, 0b101, 0b010, 0b110, 0b011, 0b111]
         adc_chan = int(n / 8)
-        adc_command = (adc_chan_lookup[adc_chan] << 4) | 0x8C
+        adc_command = (self._adc_chan_lookup[adc_chan] << 4) | 0x8C
         # i.e. Single Ended with Internal Ref ON and A/D Converter ON. See Command Byte description in ADS7828 datasheet.
-
+        
+        time.sleep(self._I2C_SLEEP_TIME)
+        
         try:    # TBD: Figure out how to handle the exception more elegantly in the UI.
             self._pi.i2c_write_byte(self._adc_1, adc_command)
-            time.sleep(0.1)
         except:
             print "Failed to write to ADC channel: {}, continuing".format(n)
 
-        time.sleep(0.1)
+        time.sleep(self._I2C_SLEEP_TIME)
         (count, data) = self._pi.i2c_read_device(self._adc_1, 2)
 
         voltage = ((data[0] << 8) | data[1])/float(2**12) * 2.5
         return (voltage * 500.0/2.5) # 2.5V ADC readout corresponds to 500 uA I_leak.
-        
-    def get_peltier_voltage(self):
-        pass
-        
+    
+    
     def set_pulser_LED(self, enable=True):
         cmd = [0x03, 0x00, 0x03, 0x00, 0x03, 0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF]
         if enable is False:
@@ -94,5 +97,19 @@ class SCDBoardInterface():
 
         self._pi.i2c_write_device(self._pulser, cmd)
         # (count, output) = self._pi.i2c_read_device(self._pulser, 11)
-
         
+    def get_diagnostic_voltage(self, adc_chan):
+        adc_command = (self._adc_chan_lookup[adc_chan] << 4) | 0x8C
+        
+        time.sleep(self._I2C_SLEEP_TIME)
+        
+        try:
+            self._pi.i2c_write_byte(self._adc_2, adc_command)
+        except:
+            print "Failed to write to ADC channel: {}.".format(n)
+        
+        time.sleep(self._I2C_SLEEP_TIME)
+        (count, data) = self._pi.i2c_read_device(self._adc_1, 2)
+
+        voltage = ((data[0] << 8) | data[1])/float(2**12) * 2.5
+        return voltage

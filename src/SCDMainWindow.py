@@ -22,12 +22,21 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self.cTestDlg.ui.settlingTimeSpinBox.setValue(SCDConstants.CTEST_NOM_SETTLING_TIME_MS)
         
         self.ui.i2cBusLineEdit.setText(str(SCDConstants.DEFAULT_I2C_BUS))
-
+        
+        self.ui.readPerTimeSpinBox.setMinimum(SCDConstants.MIN_PERIODIC_READ_INTERVAL_MS)
+        self.ui.readPerTimeSpinBox.setMaximum(SCDConstants.MAX_PERIODIC_READ_INTERVAL_MS)
         self.ui.readPerTimeSpinBox.setValue(SCDConstants.DEFAULT_PERIODIC_READ_INTERVAL_MS)
         
-        self._adcReadOutModel = QtGui.QStandardItemModel(SCDConstants.NUM_DIAGNOSTICS, 2, self)
-        self._adcReadOutModel.setHorizontalHeaderLabels(["Reading", "Value(V)"]) # User vert. header to reg #.
-        self.ui.adcTableView.setModel(self._adcReadOutModel)
+        self._diagnosticVoltagesModel = QtGui.QStandardItemModel(SCDConstants.NUM_DIAGNOSTICS, 2, self)
+        self._diagnosticVoltagesModel.setHorizontalHeaderLabels(["Reading", "Value(V)"]) # User vert. header to reg #.
+        self.ui.adcTableView.setModel(self._diagnosticVoltagesModel)
+        
+        readingLabels = ["Vin/6", "Vdd/2", "BV-IN/79", "V_Peltier/6", "I_Peltier", "*T/RH-1", "*T/RH-2"]
+        for row in range(SCDConstants.NUM_DIAGNOSTICS): 
+            index = self._diagnosticVoltagesModel.index(row, 0, QtCore.QModelIndex())
+            self._diagnosticVoltagesModel.setData(index, readingLabels[row])
+            item = self._diagnosticVoltagesModel.itemFromIndex(index)
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
         
         self._channelVoltageCurrentModel = QtGui.QStandardItemModel(SCDConstants.NUM_CHANNELS, 3, self)
         self._channelVoltageCurrentModel.setHorizontalHeaderLabels(["ID", "Bias Voltage(V)", "Leakage Current(uA)"])
@@ -65,6 +74,7 @@ class SCDMainWindow(QtWidgets.QMainWindow):
         self._channelVoltageCurrentModel.itemChanged.connect(self.handleChannelItemChange)
         self.ui.readPerStartButton.clicked.connect(self.startPeriodic)
         self.ui.readPerStopButton.clicked.connect(self._presenter.stopPeriodic)
+        self.ui.readOnceButton.clicked.connect(self._presenter.readAllOnce)
         self.ui.setAllBVButton.clicked.connect(self.setAllBVs)
         self.ui.saveToFileButton.clicked.connect(self.saveToFile)
         self.ui.runChannelTestButton.clicked.connect(self.openChannelTestDialog)
@@ -82,17 +92,25 @@ class SCDMainWindow(QtWidgets.QMainWindow):
             voltage = item.data(QtCore.Qt.DisplayRole)
             self._presenter.changeBV(int(channel), float(voltage))
         
-
+    @QtCore.pyqtSlot(int, float)
     def changeVoltageDisplay(self, channel, voltage):
         index = self._channelVoltageCurrentModel.index(channel, 1, QtCore.QModelIndex())
         self._channelVoltageCurrentModel.setData(index, voltage)
     
-
+    @QtCore.pyqtSlot(int, float)
     def changeCurrentDisplay(self, channel, current):
         index = self._channelVoltageCurrentModel.index(channel, 2, QtCore.QModelIndex())
         self._channelVoltageCurrentModel.setData(index, current)
 
-
+    @QtCore.pyqtSlot(list)
+    def changeDiagnosticsDisplay(self, voltages):
+        if len(voltages) != SCDConstants.NUM_DIAGNOSTICS:
+            return  # There was some problem reading the data.
+        
+        for row in range(SCDConstants.NUM_DIAGNOSTICS): 
+            index = self._diagnosticVoltagesModel.index(row, 1, QtCore.QModelIndex())
+            self._diagnosticVoltagesModel.setData(index, voltages[row])
+    
     def startPeriodic(self):
         self._presenter.startPeriodic(self.ui.readPerTimeSpinBox.value())
 
